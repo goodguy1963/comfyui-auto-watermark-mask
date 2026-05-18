@@ -4,12 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "comfyui-auto-watermark-mask"
-version = "0.1.0"
+version = "0.2.0"
 description = "ComfyUI custom nodes for automatic watermark masking and direct removal with OpenCV, EasyOCR, and Big-LaMa."
 readme = "README.md"
 requires-python = ">=3.10"
+license = {text = "MIT"}
 dependencies = [
   "easyocr>=1.7.2",
+  "huggingface_hub>=0.30.0",
   "opencv-python>=4.8",
   "spandrel>=0.4.1",
 ]

@@ -1,3 +1,4 @@
 easyocr>=1.7.2
+huggingface_hub>=0.30.0
 opencv-python>=4.8
 spandrel>=0.4.1

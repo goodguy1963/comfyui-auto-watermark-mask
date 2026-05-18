@@ -1,3 +1,4 @@
+import os
 import threading
 
 import cv2
@@ -12,6 +13,9 @@ _INPAINT_MODEL_CACHE = {}
 _INPAINT_MODEL_LOCK = threading.Lock()
 _DETECTION_MAX_SIDE = 1280
 _LAMA_TARGET_SIZE = 256
+_BIG_LAMA_MODEL_NAME = "big-lama.pt"
+_BIG_LAMA_REPO_ID = "fashn-ai/LaMa"
+_AUTO_DOWNLOAD_ENV = "COMFYUI_AUTO_WATERMARK_MASK_AUTO_DOWNLOAD"
 
 
 def _tensor_to_uint8(image):
@@ -163,7 +167,66 @@ def _get_inpaint_model_names():
         model_names = folder_paths.get_filename_list("inpaint")
         return model_names or ["big-lama.pt"]
     except Exception:
-        return ["big-lama.pt"]
+        return [_BIG_LAMA_MODEL_NAME]
+
+
+def _get_inpaint_roots():
+    roots = []
+    try:
+        import folder_paths
+
+        folder_roots = folder_paths.get_folder_paths("inpaint") or []
+        for folder_root in folder_roots:
+            if folder_root and folder_root not in roots:
+                roots.append(folder_root)
+    except Exception:
+        pass
+
+    comfy_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    repo_root = os.path.abspath(os.path.dirname(__file__))
+    fallback_roots = [
+        os.path.join(comfy_root, "models", "inpaint"),
+        os.path.join(repo_root, "models", "inpaint"),
+    ]
+    for fallback_root in fallback_roots:
+        if fallback_root not in roots:
+            roots.append(fallback_root)
+    return roots
+
+
+def _find_inpaint_model_path(model_name):
+    for model_root in _get_inpaint_roots():
+        model_path = os.path.join(model_root, model_name)
+        if os.path.exists(model_path):
+            return model_path
+    return None
+
+
+def _auto_download_enabled():
+    value = os.environ.get(_AUTO_DOWNLOAD_ENV, "1").strip().lower()
+    return value not in {"0", "false", "no", "off"}
+
+
+def _download_big_lama():
+    if not _auto_download_enabled():
+        return None
+
+    from huggingface_hub import hf_hub_download
+
+    target_root = _get_inpaint_roots()[0]
+    os.makedirs(target_root, exist_ok=True)
+    downloaded_path = hf_hub_download(
+        repo_id=_BIG_LAMA_REPO_ID,
+        filename=_BIG_LAMA_MODEL_NAME,
+        local_dir=target_root,
+    )
+    if os.path.exists(downloaded_path):
+        return downloaded_path
+
+    fallback_path = os.path.join(target_root, _BIG_LAMA_MODEL_NAME)
+    if os.path.exists(fallback_path):
+        return fallback_path
+    return None
 
 
 def _get_inpaint_model_path(model_name):
@@ -176,13 +239,25 @@ def _get_inpaint_model_path(model_name):
     except Exception:
         pass
 
-    import os
-
-    comfy_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    model_path = os.path.join(comfy_root, "models", "inpaint", model_name)
-    if os.path.exists(model_path):
+    model_path = _find_inpaint_model_path(model_name)
+    if model_path is not None:
         return model_path
-    raise RuntimeError(f"Inpaint model file not found: {model_name}")
+
+    if model_name == _BIG_LAMA_MODEL_NAME:
+        try:
+            downloaded_path = _download_big_lama()
+        except Exception as exception:
+            raise RuntimeError(
+                "Inpaint model file not found and automatic Big-LaMa download failed: "
+                f"{exception}"
+            ) from exception
+        if downloaded_path is not None:
+            return downloaded_path
+
+    raise RuntimeError(
+        f"Inpaint model file not found: {model_name}. "
+        f"Set {_AUTO_DOWNLOAD_ENV}=1 to allow automatic download for {_BIG_LAMA_MODEL_NAME}."
+    )
 
 
 def _get_torch_device():

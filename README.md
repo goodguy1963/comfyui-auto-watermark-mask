@@ -2,6 +2,8 @@
 
 ComfyUI helper nodes for finding text-like watermarks and removing them directly with OpenCV or Big-LaMa.
 
+This repository is intended to be shareable as a standalone custom node package.
+
 ## What is included
 
 - `Auto Watermark Mask (OCR)` builds a mask from EasyOCR detections with a CV2 fallback.
@@ -15,6 +17,7 @@ This version keeps the same workflow shape but reduces the expensive parts of th
 - EasyOCR readers are cached per language and GPU setting.
 - Big-LaMa inference runs once per ComfyUI image batch instead of one forward pass per image.
 - Big-LaMa is skipped entirely when the batch has no detected mask pixels.
+- Missing `big-lama.pt` can be fetched automatically from Hugging Face on first use.
 
 ## Installation
 
@@ -24,11 +27,14 @@ This version keeps the same workflow shape but reduces the expensive parts of th
 
 ## Model setup
 
-For `big_lama`, place `big-lama.pt` in `ComfyUI/models/inpaint/big-lama.pt`.
+`big_lama` now tries to resolve `big-lama.pt` in your configured ComfyUI inpaint model paths first.
+
+If the file is missing, the node will automatically download `fashn-ai/LaMa/big-lama.pt` into the first available inpaint model directory.
 
 Notes:
 
 - The first OCR run may download EasyOCR language weights.
+- Automatic Big-LaMa download is enabled by default and can be disabled with `COMFYUI_AUTO_WATERMARK_MASK_AUTO_DOWNLOAD=0`.
 - `cv2_only` avoids EasyOCR startup cost and is the fastest mode.
 - `opencv_telea` is usually the best first pass for small text watermarks.
 - `big_lama` is better when the watermark is thicker or overlaps detailed texture.
@@ -53,3 +59,22 @@ The implementation direction here matches the common public pattern in other wat
 - auto-download or local caching expectations for OCR and model weights
 
 The biggest gap in the original local node was not missing features, but avoidable overhead in large-image detection and per-image LaMa execution.
+
+## Benchmark
+
+Run the included benchmark harness to compare the optimized paths against small legacy reference implementations:
+
+```powershell
+python benchmark\benchmark_node.py --repeat 30
+```
+
+The benchmark covers:
+
+- full-resolution legacy CV2 detection vs current downscaled detection
+- legacy per-image LaMa loop vs current batched LaMa path
+
+It uses synthetic inputs and a lightweight dummy LaMa model, so it is intended for regression and relative speed checks rather than absolute quality scoring.
+
+## License
+
+MIT
