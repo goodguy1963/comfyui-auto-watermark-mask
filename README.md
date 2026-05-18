@@ -64,6 +64,19 @@ The implementation direction here matches the common public pattern in other wat
 
 The biggest gap in the original local node was not missing features, but avoidable overhead in large-image detection and per-image LaMa execution.
 
+Implementation notes from external watermark removers:
+
+- `ComfyUI-SimpleWatermarkRemover` keeps the pipeline very small: manual mask input, pad for LaMa, auto-download the model, then run a direct inpaint pass.
+- `WaterMarkRemover_ComfyUI` follows a similarly short path and also auto-downloads the model when missing.
+- `IOPaint` shows the more scalable pattern: treat model lookup and switching as first-class concerns, keep model discovery centralized, and avoid repeated heavy initialization.
+
+This node intentionally combines the useful parts of those approaches without copying their code:
+
+- automatic model bootstrap for fresh installs
+- cached OCR readers and cached inpaint models
+- automatic mask generation instead of manual-mask-only flows
+- batched Big-LaMa inference and downscaled detection for better runtime efficiency
+
 ## Benchmark
 
 Run the included benchmark harness to compare the optimized paths against small legacy reference implementations:
@@ -86,6 +99,24 @@ It uses synthetic inputs and a lightweight dummy LaMa model, so it is intended f
 - `examples/auto_watermark_remover_basic.json` provides a minimal example workflow for the node.
 - The repo includes `tool.comfy` metadata in `pyproject.toml`.
 - The current `PublisherId` is set to `goodguy1963` as the intended registry id. If you create a different Comfy Registry publisher, update that field before publishing.
+
+## Registry Publishing
+
+The repo now includes [.github/workflows/publish.yml](.github/workflows/publish.yml), which follows the same publish pattern used for the earlier ThinkingLLM registry setup:
+
+- it runs manually with `workflow_dispatch`
+- it also runs automatically when `pyproject.toml` changes on `main`
+- it uses `Comfy-Org/publish-node-action@v1`
+- it reads the registry token from the GitHub Actions secret `REGISTRY_ACCESS_TOKEN`
+
+To make the action actually publish to ComfyUI-Manager and the Comfy Registry, you still need these prerequisites:
+
+1. Create a publisher at `https://registry.comfy.org/`.
+2. Confirm the publisher id matches `tool.comfy.PublisherId` in `pyproject.toml`.
+3. Add a GitHub repository secret named `REGISTRY_ACCESS_TOKEN` with a Comfy Registry publishing API key for that publisher.
+4. Bump the semantic version in `pyproject.toml` when you want a new registry release, then push to `main` or run the workflow manually.
+
+Without the publisher and secret, the workflow file is correct but publishing will fail at runtime.
 
 ## License
 
