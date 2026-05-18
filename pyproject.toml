@@ -8,13 +8,20 @@ version = "0.2.0"
 description = "ComfyUI custom nodes for automatic watermark masking and direct removal with OpenCV, EasyOCR, and Big-LaMa."
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = {file = "LICENSE"}
 dependencies = [
   "easyocr>=1.7.2",
   "huggingface_hub>=0.30.0",
   "opencv-python>=4.8",
   "spandrel>=0.4.1",
 ]
+
+[project.urls]
+Repository = "https://github.com/goodguy1963/comfyui-auto-watermark-mask"
+
+[tool.comfy]
+PublisherId = "goodguy1963"
+DisplayName = "ComfyUI Auto Watermark Mask"
 
 [tool.setuptools]
 py-modules = ["auto_watermark_mask"]

@@ -1,0 +1,4 @@
+{
+  "Auto Watermark Mask (OCR)": "Creates a text-like watermark mask using EasyOCR with a CV2 fallback path for large images and lighter installs.",
+  "Auto Watermark Remover": "Detects likely watermark regions and removes them with OpenCV or Big-LaMa, including optional automatic big-lama.pt download on first use."
+}

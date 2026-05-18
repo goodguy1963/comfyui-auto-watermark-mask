@@ -4,6 +4,8 @@ ComfyUI helper nodes for finding text-like watermarks and removing them directly
 
 This repository is intended to be shareable as a standalone custom node package.
 
+The canonical install location is directly under `ComfyUI/custom_nodes/comfyui-auto-watermark-mask`.
+
 ## What is included
 
 - `Auto Watermark Mask (OCR)` builds a mask from EasyOCR detections with a CV2 fallback.
@@ -24,6 +26,8 @@ This version keeps the same workflow shape but reduces the expensive parts of th
 1. Clone this repository into `ComfyUI/custom_nodes/comfyui-auto-watermark-mask`.
 2. Install the Python dependencies from `requirements.txt` if they are not already present.
 3. Restart ComfyUI.
+
+For your own portable setup, keep only one copy of this repository and place that git checkout directly in `custom_nodes`. Avoid maintaining a second copy elsewhere in the workspace.
 
 ## Model setup
 
@@ -74,6 +78,14 @@ The benchmark covers:
 - legacy per-image LaMa loop vs current batched LaMa path
 
 It uses synthetic inputs and a lightweight dummy LaMa model, so it is intended for regression and relative speed checks rather than absolute quality scoring.
+
+## Manager And Registry Notes
+
+- `requirements.txt` is included so ComfyUI-Manager can install Python dependencies.
+- `node_list.json` is included so the node pack can be indexed even if static scanning changes.
+- `examples/auto_watermark_remover_basic.json` provides a minimal example workflow for the node.
+- The repo includes `tool.comfy` metadata in `pyproject.toml`.
+- The current `PublisherId` is set to `goodguy1963` as the intended registry id. If you create a different Comfy Registry publisher, update that field before publishing.
 
 ## License
 
