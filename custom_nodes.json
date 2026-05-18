@@ -1,0 +1,13 @@
+{
+  "author": "goodguy1963",
+  "title": "ComfyUI Auto Watermark Mask",
+  "reference": "https://github.com/goodguy1963/comfyui-auto-watermark-mask",
+  "files": [
+    "https://github.com/goodguy1963/comfyui-auto-watermark-mask"
+  ],
+  "install_type": "git-clone",
+  "description": "ComfyUI custom nodes for automatic watermark masking and direct removal with OpenCV, EasyOCR, and Big-LaMa.",
+  "category": "image",
+  "tags": ["watermark", "ocr", "opencv", "inpainting", "lama", "restoration"],
+  "version": "0.2.3"
+}
